@@ -1,0 +1,94 @@
+import arcpy
+from arcpy.sa import *
+from arcpy import env
+import os, numpy
+import pandas as pd
+# Set the output geodatabase name and location
+gdb_name = "data.gdb"
+gdb_location = "C:/"
+
+# Full path to the geodatabase
+gdb_path = os.path.join(gdb_location, gdb_name)
+
+# Check if the geodatabase exists, if yes, delete it
+if arcpy.Exists(gdb_path):
+    arcpy.management.Delete(gdb_path)
+
+
+# Enable overwriteOutput to overwrite existing files
+arcpy.env.overwriteOutput = True
+
+# Create a new file geodatabase
+arcpy.management.CreateFileGDB(gdb_location, gdb_name)
+
+# Set the workspace environment to local file geodatabase
+arcpy.env.workspace = gdb_path
+# Set local variables
+inRaster = arcpy.GetParameterAsText(0)   
+azimuth0 = 0
+azimuth45 = 45
+azimuth90 = 90
+azimuth135 = 135
+azimuth180 = 180
+azimuth225 = 225
+azimuth270 = 270
+azimuth315 = 315
+altitude = 45
+modelShadows = "SHADOWS"
+zFactor = 1
+
+# Check out the ArcGIS Spatial Analyst extension license
+arcpy.CheckOutExtension("Spatial")
+
+# Execute HillShade0
+outHillShade0 = Hillshade(inRaster, azimuth0, altitude, modelShadows, zFactor)
+# Save the output 
+outHillShade0.save("Multi0_hillshade")
+# Set the output raster path
+output_raster_path0 = os.path.join(gdb_path, "Multi0_hillshade")
+
+# Execute HillShade45
+outHillShade45 = Hillshade(inRaster, azimuth45, altitude, modelShadows, zFactor)
+outHillShade45.save("Multi45_hillshade")
+output_raster_path45 = os.path.join(gdb_path, "Multi45_hillshade")
+# Execute HillShade90
+outHillShade90 = Hillshade(inRaster, azimuth90, altitude, modelShadows, zFactor)
+outHillShade90.save("Multi90_hillshade")
+output_raster_path90 = os.path.join(gdb_path, "Multi90_hillshade")
+# Execute HillShade135
+outHillShade135 = Hillshade(inRaster, azimuth135, altitude, modelShadows, zFactor)
+outHillShade135.save("Multi135_hillshade")
+output_raster_path135 = os.path.join(gdb_path, "Multi135_hillshade")
+# Execute HillShade180
+outHillShade180 = Hillshade(inRaster, azimuth180, altitude, modelShadows, zFactor)
+outHillShade180.save("Multi180_hillshade")
+output_raster_path180 = os.path.join(gdb_path, "Multi180_hillshade")
+# Execute HillShade225
+outHillShade225 = Hillshade(inRaster, azimuth225, altitude, modelShadows, zFactor)
+outHillShade225.save("Multi225_hillshade")
+output_raster_path225 = os.path.join(gdb_path, "Multi225_hillshade")
+# Execute HillShade270
+outHillShade270 = Hillshade(inRaster, azimuth270, altitude, modelShadows, zFactor)
+outHillShade270.save("Multi270_hillshade")
+output_raster_path270 = os.path.join(gdb_path, "Multi270_hillshade")
+# Execute HillShade315
+outHillShade315 = Hillshade(inRaster, azimuth315, altitude, modelShadows, zFactor)
+outHillShade315.save("Multi315_hillshade")
+output_raster_path315 = os.path.join(gdb_path, "Multi315_hillshade")
+
+# Process: Raster Calculator
+Multi8DHillshade = "C:/data.gdb/Multi8DHillshade"
+exp = (Raster("Multi0_hillshade") * 4 + Raster("Multi45_hillshade") * 2 + Raster("Multi90_hillshade") + Raster("Multi135_hillshade") + Raster("Multi180_hillshade") + Raster("Multi225_hillshade") * 2 + Raster("Multi270_hillshade") * 4 + Raster("Multi315_hillshade") * 4)/19
+exp.save(Multi8DHillshade)
+
+
+# Add the generated hillshade layer to the current map
+mxd = arcpy.mapping.MapDocument("CURRENT")
+data_frame = arcpy.mapping.ListDataFrames(mxd)[0]
+
+# Use AddLayer function to add the hillshade layer
+arcpy.mapping.AddLayer(data_frame, arcpy.mapping.Layer(Multi8DHillshade), "AUTO_ARRANGE")
+
+# Update the map document
+arcpy.RefreshActiveView()
+arcpy.RefreshTOC()
